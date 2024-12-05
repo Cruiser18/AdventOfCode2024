@@ -10,6 +10,35 @@ let pageOrdering =
     x.Split(',')
     |> Array.toList)
 
+let rec sortList index (list:string list) =
+    
+    let currentNumber = list.[index]
+    let rules = List.filter (fun (a,b) -> a = currentNumber) orderingRules
+    let element =
+        rules |> 
+        List.tryFind (fun (a,b) ->
+            let innerIndex = List.tryFindIndex (fun x -> x = b) list
+            match innerIndex with
+            | Some x when x < index -> true
+            | None -> false
+            | _ -> false
+    )
+    match element with
+    | Some (a,b) -> 
+        let breakingElementIndex = List.findIndex (fun x -> x = b) list
+        let newList = 
+            List.updateAt breakingElementIndex currentNumber list
+            |> List.updateAt index b
+        // printfn "%A" newList
+        sortList breakingElementIndex newList
+    | None -> 
+        // printfn "%A" index
+        match (index = list.Length-1) with
+        | false -> sortList (index+1) list
+        | true -> list
+
+let result = sortList 0 ["97";"13";"75";"29";"47"]
+
 let correctPageOrderings =
     pageOrdering
     |> List.filter (fun pages -> 
@@ -20,27 +49,26 @@ let correctPageOrderings =
                 let isCorrect = 
                     orderings |>
                     List.forall (fun (a,b) -> 
-                        // printfn "%A" i
-                        // printfn "%A" a
-                        // printfn "%A" b
                         let index = List.tryFindIndex (fun z -> z = b) pages
-                        // printfn "%A" index
                         match index with
                         | Some y when y > i -> true
                         | None -> true
                         | _ -> false
                     ) 
                 isCorrect
-            ) 
-        // printfn "%A" test
-        List.forall (fun x -> x = false) checkedPages
+            )
+        // printfn "%A" checkedPages
+        List.exists (fun x -> x = false) checkedPages
     )
+
+Math.Ceiling(float 5 / float 2)
 
 let middleNumbersSum =
     correctPageOrderings
     |> List.map (fun pages -> 
-        let middleIndex = pages.Length / 2
-        pages.[middleIndex]
+        let sorted = sortList 0 pages
+        let middleIndex = Math.Floor(float sorted.Length / float 2) |> int
+        sorted.[middleIndex]
     )
     |> List.sumBy int
 
