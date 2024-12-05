@@ -11,7 +11,6 @@ let pageOrdering =
     |> Array.toList)
 
 let rec sortList index (list:string list) =
-    
     let currentNumber = list.[index]
     let rules = List.filter (fun (a,b) -> a = currentNumber) orderingRules
     let element =
@@ -29,15 +28,11 @@ let rec sortList index (list:string list) =
         let newList = 
             List.updateAt breakingElementIndex currentNumber list
             |> List.updateAt index b
-        // printfn "%A" newList
         sortList breakingElementIndex newList
     | None -> 
-        // printfn "%A" index
         match (index = list.Length-1) with
         | false -> sortList (index+1) list
         | true -> list
-
-let result = sortList 0 ["97";"13";"75";"29";"47"]
 
 let correctPageOrderings =
     pageOrdering
@@ -57,7 +52,6 @@ let correctPageOrderings =
                     ) 
                 isCorrect
             )
-        // printfn "%A" checkedPages
         List.exists (fun x -> x = false) checkedPages
     )
 
@@ -72,4 +66,4 @@ let middleNumbersSum =
     )
     |> List.sumBy int
 
-// Correct answer was 4905
+// Correct answer was 6204
