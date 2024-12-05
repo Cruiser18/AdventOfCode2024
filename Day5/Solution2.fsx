@@ -33,7 +33,7 @@ let correctPageOrderings =
                 isCorrect
             ) 
         // printfn "%A" test
-        List.forall (fun x -> x = true) checkedPages
+        List.forall (fun x -> x = false) checkedPages
     )
 
 let middleNumbersSum =
