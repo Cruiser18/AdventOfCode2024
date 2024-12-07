@@ -54,8 +54,11 @@ let getTileInFront guard direction map =
     | Down -> getTile (guardX + 1) guardY map
     | Left -> getTile guardX (guardY - 1) map
 
+let mutable allMoves = []
+
 let move guard (map:char array2d) direction =
     let guardX, guardY = getGuardPosition guard
+    allMoves <- allMoves @ [(guardX, guardY)]
     match direction with
     | Up -> 
         map.[guardX - 1, guardY] <- '^'
@@ -120,5 +123,9 @@ let sumOf2DArray array2D =
 
 let finalMap = run array2D Up
 sumOf2DArray finalMap
+
+List.iter (fun (x, y) -> 
+    File.AppendAllLines ("Day6/Output.txt", [| sprintf "%A, %A" x y |])) 
+    allMoves
 
 // Correct answer is 5305
