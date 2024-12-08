@@ -23,13 +23,16 @@ let rec getTowerTypesAndPosition (map:char array2d) =
 let towerTypesAndPosition = getTowerTypesAndPosition array2D
 
 let tryPlacingValue x y (map:char array2d) =
+    printfn "X:%i Y:%i" x y
     let maybeValue =
         try 
             Some(map.[x, y])
         with 
         | :? IndexOutOfRangeException as ex -> None
     match maybeValue with
-    | Some value -> value
+    | Some value -> 
+        printfn "X:%i Y:%i Value: %c" x y value
+        value
     | None -> ' '
 
 let someFunction (towerTypeAndPosition:list<char * (int * int)>) =
@@ -43,16 +46,18 @@ let someFunction (towerTypeAndPosition:list<char * (int * int)>) =
                 let diffY = snd otherTowerPosition - (snd position)
                 let antiNodeX = fst otherTowerPosition + diffX
                 let antiNodeY = snd otherTowerPosition + diffY
+                // printfn "AntiNodeX: %d AntiNodeY: %d" antiNodeX antiNodeY
                 let mutable counter = 1
-                while tryPlacingValue (antiNodeX*counter) (antiNodeY*counter) resultMap <> ' ' do    
-                    resultMap.[antiNodeX * counter, antiNodeY * counter] <- '#'
+                while tryPlacingValue ((fst otherTowerPosition + (diffX*counter))) (snd otherTowerPosition + (diffY*counter)) resultMap <> ' ' do
+                    printfn "AntiNodeX: %d AntiNodeY: %d" (fst otherTowerPosition + (diffX*counter)) (snd otherTowerPosition + (diffY*counter))
+                    resultMap.[fst otherTowerPosition + (diffX*counter), snd otherTowerPosition + (diffY*counter)] <- '#'
                     counter <- counter + 1
         )
     )
     
 someFunction towerTypesAndPosition
 
-let countTowers map =
+let countAntiNodes map =
     let mutable foundTowers = 0
     for (i:int) in 0 .. Array2D.length1 map - 1 do
         for (j:int) in 0 .. Array2D.length2 map - 1 do
@@ -61,4 +66,6 @@ let countTowers map =
                 foundTowers <- foundTowers + 1
     foundTowers
 
-let result = countTowers resultMap
+let result = (countAntiNodes resultMap) + towerTypesAndPosition.Length
+
+// 1209 was wrong. Too high
