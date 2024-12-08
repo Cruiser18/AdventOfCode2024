@@ -22,8 +22,8 @@ let rec getTowerTypesAndPosition (map:char array2d) =
 
 let towerTypesAndPosition = getTowerTypesAndPosition array2D
 
-let tryPlacingValue x y (map:char array2d) =
-    printfn "X:%i Y:%i" x y
+let tryGetValue x y (map:char array2d) =
+    // printfn "X:%i Y:%i" x y
     let maybeValue =
         try 
             Some(map.[x, y])
@@ -31,7 +31,7 @@ let tryPlacingValue x y (map:char array2d) =
         | :? IndexOutOfRangeException as ex -> None
     match maybeValue with
     | Some value -> 
-        printfn "X:%i Y:%i Value: %c" x y value
+        // printfn "X:%i Y:%i Value: %c" x y value
         value
     | None -> ' '
 
@@ -48,7 +48,7 @@ let someFunction (towerTypeAndPosition:list<char * (int * int)>) =
                 let antiNodeY = snd otherTowerPosition + diffY
                 // printfn "AntiNodeX: %d AntiNodeY: %d" antiNodeX antiNodeY
                 let mutable counter = 1
-                while tryPlacingValue ((fst otherTowerPosition + (diffX*counter))) (snd otherTowerPosition + (diffY*counter)) resultMap <> ' ' do
+                while tryGetValue ((fst otherTowerPosition + (diffX*counter))) (snd otherTowerPosition + (diffY*counter)) resultMap <> ' ' do
                     printfn "AntiNodeX: %d AntiNodeY: %d" (fst otherTowerPosition + (diffX*counter)) (snd otherTowerPosition + (diffY*counter))
                     resultMap.[fst otherTowerPosition + (diffX*counter), snd otherTowerPosition + (diffY*counter)] <- '#'
                     counter <- counter + 1
@@ -65,6 +65,14 @@ let countAntiNodes map =
             if value = '#' then
                 foundTowers <- foundTowers + 1
     foundTowers
+
+let placeTowersOnResultMap towerTypesAndPosition (resultMap:char array2d) =
+    towerTypesAndPosition |> List.iter (fun (x:char * (int*int)) ->
+        let towerType, position = x
+        resultMap.[fst position, snd position] <- towerType
+    )
+
+placeTowersOnResultMap towerTypesAndPosition resultMap
 
 let result = (countAntiNodes resultMap) + towerTypesAndPosition.Length
 
