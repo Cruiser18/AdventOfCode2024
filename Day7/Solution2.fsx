@@ -16,20 +16,20 @@ type BST<'T> =
         | Empty
         | Node of value:'T  * regularPlus: BST<'T> * combiPlus:BST<'T> * combiMultiply:BST<'T> * regularMultiply: BST<'T>
 
-let rec createChildNodes (list:uint64 list) =
+let rec createChildNodes value (list:uint64 list) =
     match list with
         | [] -> Empty
         | x::xs -> 
-            let updatedList = 
+            let combinedValue = 
                 match xs with
                 | [] -> []
                 | _ -> 
-                    let combinedValue = (string x + string xs.Head) |> uint64
-                    xs |> List.updateAt 0 combinedValue
-            Node(x, createChildNodes xs, createChildNodes updatedList, createChildNodes updatedList, createChildNodes xs)
+                    let combined = (string x + string xs.Head) |> uint64
+                    [combined]
+            Node(value, createChildNodes xs.Head xs, createChildNodes combinedValue.Head xs, createChildNodes combinedValue.Head xs, createChildNodes xs.Head xs)
 
 let myTrees = 
-    List.map (fun (x:uint64 * uint64 list) -> (fst x, createChildNodes (snd x))) input
+    List.map (fun (x:uint64 * uint64 list) -> (fst x, createChildNodes (snd x).Head (snd x))) input
 
 let rec exists targetValue acc bst =
     match bst with
