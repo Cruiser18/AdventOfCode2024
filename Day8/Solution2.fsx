@@ -76,4 +76,4 @@ placeTowersOnResultMap towerTypesAndPosition resultMap
 
 let result = (countAntiNodes resultMap) + towerTypesAndPosition.Length
 
-// 1209 was wrong. Too high
+// Answer was 1131
