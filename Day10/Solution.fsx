@@ -36,17 +36,11 @@ let getCharLeft x y (map:char array2d) = ((tryGettingValue x (y-1) map), (x, y-1
 let getAllValidNeighbors x y (map:char array2d) = 
     [getCharAbove x y map; getCharRight x y map; getCharBelow x y map; getCharLeft x y map]
 
-// getAllValidNeighbors 3 0 array2D |> List.filter (fun (x, (y , z)) -> x <> '.')
-
 let rec checkTrail (nextIndex:(int*int)) previous (map:char array2d) =
-    // printfn "Next: %A" nextIndex
     let (x,y) = nextIndex
     let nextInt = (Array2D.get map x y) |> toIntFromChar |> int
-    // printfn "NextInt: %A" nextInt
-    // printfn "Previous: %A" previous
     match nextInt with
     | 9 -> 
-        map[x, y] <- '.'
         1
     | z when z <= previous -> 0
     | _ -> 
