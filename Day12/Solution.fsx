@@ -29,43 +29,48 @@ let getAllNeighbors x y (map:char array2d) =
 
 
 let mutable allPreviousPositions = []
+let mutable totalArea = 0
+let mutable totalPerim = 0
 let expandRegion x y =
-    let rec expandRegionInternal (accArea:int) (accPerim:int) (currentPosition:(int*int)) =
+    let rec expandRegionInternal (visitedPositions:(int*int) list) (currentPosition:(int*int)) =
         let (x,y) = currentPosition
+        let newVisitedPositions = visitedPositions @ [currentPosition]
         allPreviousPositions <- allPreviousPositions @ [currentPosition]
         printfn "Current Position: %A" (x, y)
         let allNeighbors = getAllNeighbors x y inputMap
         printfn "All Neighbors: %A" allNeighbors
         let currentPositionValue = inputMap.[x, y]
-        let perimeterCount = 
-            allNeighbors
-            |> List.filter (fun (value, (x, y)) -> value <> currentPositionValue)
-            |> List.length
+        // let perimeterCount = 
+        //     allNeighbors
+        //     |> List.filter (fun (value, (x, y)) -> value <> currentPositionValue)
+        //     |> List.length
         let possibleNextPositions = 
             allNeighbors
             |> List.filter (fun (value, pos) -> value = currentPositionValue)
             |> List.filter (fun (_, pos) -> List.contains pos allPreviousPositions |> not)
-        printfn "NextPositions Count: %A" possibleNextPositions
-        printfn "Perimeter Count: %A" perimeterCount
         match possibleNextPositions with
         | [] -> 
-            // No more neighbors, return area and perimeter
-            (accArea, (accPerim + perimeterCount))
+            newVisitedPositions
         | _ ->
             // let positions = previousPositions |> List.map (fun (a, b) -> (a, b))
             // allPreviousPositions <- allPreviousPositions @ positions
-            possibleNextPositions |> 
-            List.fold (fun (area, perim) (_, (a, b)) -> 
-                let (newArea, newPerim) = expandRegionInternal (accArea + 1) (accPerim + perimeterCount) (a, b)
-                (newArea, newPerim)
-            ) (accArea, accPerim + perimeterCount)
+            let result =
+                possibleNextPositions |> 
+                List.fold (fun (value, (a, b)) -> 
+                    let list = expandRegionInternal newVisitedPositions (a, b)
+                    printfn "Total Area: %A Total Perim: %A" totalArea totalPerim
+                    value @ list
+                ) []
+            
     expandRegionInternal 1 0 (x, y)
 
 //Foreach item in inputMap, if it's not in allPreviousPositions, expandRegion
 let result =
     Array2D.mapi (fun i j value ->
         if List.contains (i, j) allPreviousPositions |> not then
-            expandRegion i j
+            expandRegion i j // I'm going about this the wrong way. I should get all the connected tiles, 
+            //then the area is the count of those tiles, 
+            //and the perimeter is the count of the tiles where a neighbor is not the same as the current tile
         else
             (-1, -1)
     ) inputMap
