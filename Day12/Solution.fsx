@@ -1,7 +1,7 @@
 open System.IO
 open System
 
-let input = File.ReadAllLines("Day12/TestInput.txt")
+let input = File.ReadAllLines("Day12/Input.txt")
 let charArrayArray = 
     input
     |> Array.map (fun line -> line.ToCharArray())
@@ -27,59 +27,55 @@ let getCharLeft x y (map:char array2d) = ((tryGettingValue x (y-1) map), (x, y-1
 let getAllNeighbors x y (map:char array2d) = 
     [getCharAbove x y map; getCharRight x y map; getCharBelow x y map; getCharLeft x y map]
 
-
-let mutable allPreviousPositions = []
 let mutable totalArea = 0
 let mutable totalPerim = 0
-let expandRegion x y =
-    let rec expandRegionInternal (visitedPositions:(int*int) list) (currentPosition:(int*int)) =
-        let (x,y) = currentPosition
-        let newVisitedPositions = visitedPositions @ [currentPosition]
-        allPreviousPositions <- allPreviousPositions @ [currentPosition]
-        printfn "Current Position: %A" (x, y)
-        let allNeighbors = getAllNeighbors x y inputMap
-        printfn "All Neighbors: %A" allNeighbors
-        let currentPositionValue = inputMap.[x, y]
-        // let perimeterCount = 
-        //     allNeighbors
-        //     |> List.filter (fun (value, (x, y)) -> value <> currentPositionValue)
-        //     |> List.length
-        let possibleNextPositions = 
-            allNeighbors
-            |> List.filter (fun (value, pos) -> value = currentPositionValue)
-            |> List.filter (fun (_, pos) -> List.contains pos allPreviousPositions |> not)
-        match possibleNextPositions with
-        | [] -> 
-            newVisitedPositions
-        | _ ->
-            // let positions = previousPositions |> List.map (fun (a, b) -> (a, b))
-            // allPreviousPositions <- allPreviousPositions @ positions
-            let result =
-                possibleNextPositions |> 
-                List.fold (fun (value, (a, b)) -> 
-                    let list = expandRegionInternal newVisitedPositions (a, b)
-                    printfn "Total Area: %A Total Perim: %A" totalArea totalPerim
-                    value @ list
-                ) []
-            
-    expandRegionInternal 1 0 (x, y)
+let mutable allPreviousPositions = []
 
-//Foreach item in inputMap, if it's not in allPreviousPositions, expandRegion
-let result =
-    Array2D.mapi (fun i j value ->
-        if List.contains (i, j) allPreviousPositions |> not then
-            expandRegion i j // I'm going about this the wrong way. I should get all the connected tiles, 
-            //then the area is the count of those tiles, 
-            //and the perimeter is the count of the tiles where a neighbor is not the same as the current tile
-        else
-            (-1, -1)
-    ) inputMap
-printfn "%A" result
+let findAllConnectedIndex x y (map:char array2d) =
+    let mutable internalPreviousPositions = []
+    let rec expandRegionInternal (currentPosition:(int*int)) =
+        let (x,y) = currentPosition
+        match currentPosition with
+        | x when List.contains x internalPreviousPositions -> ()
+        | _ ->
+            internalPreviousPositions <- internalPreviousPositions @ [currentPosition]
+            let allNeighbors = getAllNeighbors x y map
+            let currentPositionValue = map.[x, y]
+            let possibleNextPositions = 
+                allNeighbors
+                |> List.filter (fun (value, pos) -> value = currentPositionValue)
+                |> List.filter (fun (_, pos) -> List.contains pos internalPreviousPositions |> not)
+            match possibleNextPositions with
+            | [] -> ()
+            | _ ->
+                possibleNextPositions |> List.iter (fun (value, position) -> expandRegionInternal position)
+                ()
+    expandRegionInternal (x, y) |> ignore
+    internalPreviousPositions
+
 let mutable totalPrice = 0
-result |> Array2D.iter (fun v -> 
-    match v with
-    | (-1, _) | (_, -1) -> ()
-    | _ ->
-        printfn "Area: %A perim: %A" (fst v) (snd v)
-        totalPrice <- totalPrice + (fst v) * (snd v)
-)
+
+while allPreviousPositions.Length < inputMap.Length do
+    let nextViablePosition = 
+        [for i in 0..inputMap.GetLength(0)-1 do
+            for j in 0..inputMap.GetLength(1)-1 do
+                if List.contains (i, j) allPreviousPositions |> not then
+                    yield (i, j)]
+        |> List.head
+    // printfn "Next Viable Position: %A" nextViablePosition
+    // printfn "allPreviousPositions: %A" allPreviousPositions
+    let (x,y) = nextViablePosition
+    let listOfIds = findAllConnectedIndex x y inputMap
+    allPreviousPositions <- allPreviousPositions @ listOfIds
+    let area = listOfIds.Length
+    let currentPositionValue = inputMap.[x, y]
+    let perimeterCount = 
+        listOfIds |> List.fold (fun (perimCount:int) (x, y) -> 
+        let perimeterCount = 
+            let allNeighbors = getAllNeighbors x y inputMap
+            allNeighbors
+            |> List.filter (fun (value, (x, y)) -> value <> currentPositionValue)
+            |> List.length
+        perimCount + perimeterCount
+        ) 0
+    totalPrice <- totalPrice + (area * perimeterCount)
