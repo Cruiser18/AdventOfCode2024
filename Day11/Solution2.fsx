@@ -1,51 +1,51 @@
 open System.IO
 open System
 
-let input = File.ReadAllText("Day11/TestInput.txt")
-let zeroStoneToOne x = 1
-let evenStoneToTwoStones x = 
-    Seq.splitInto 2 (string x)
-    |> Seq.map (fun x -> 
-        let result = 
-            Array.fold (fun acc x -> 
-            let asstring = string x
-            acc + asstring
-            ) "" x
-        // printfn "%A" result
-        uint64 result)
-    |> List.ofSeq
+let input = File.ReadAllText("Day11/Input.txt")
 
-let defaultStone (x:uint64) = 
-    x * 2024UL
+let split n =
+    let num = n.ToString()
+    let left = num[0 .. num.Length / 2 - 1].TrimStart([| '0' |])
+    let right = num[num.Length / 2 ..].TrimStart([| '0' |])
 
-let isEvenLength x = 
-    (string x).Length % 2 = 0
+    [| if left = "" then 0UL else System.UInt64.Parse left
+       if right = "" then 0UL else System.UInt64.Parse right |]
 
+let counts = input.Split(" ", StringSplitOptions.RemoveEmptyEntries) |> Array.map uint64
+let memo = Collections.Generic.Dictionary<uint64, uint64[]>()
+let blink num =
+    if memo.ContainsKey num then
+        memo[num]
+    else
+        let result =
+            match num with
+            | 0UL -> [| 1UL |]
+            | n when (int (System.Math.Floor(Math.Log10(float n))) + 1) % 2 = 0 -> split n
+            | n -> [| n * 2024UL |]
 
-let mutable resultHolder = input
-let mutable totalCounter = 0
-for i = 1 to 6 do
-    let splitResultHolder = resultHolder.Split(" ", StringSplitOptions.RemoveEmptyEntries)
-    resultHolder <- ""
-    printfn "%i" i
-    let mutable internalCounter = 0
-    Array.iter (fun (x:string) -> 
-        let result = 
-            // printfn "X: %A" x
-            match (uint64 x) with
-            | 0UL -> string (zeroStoneToOne x)
-            | y when isEvenLength y -> 
-                evenStoneToTwoStones y
-                |> List.map (fun x -> string x)
-                |> List.fold (fun (acc:string) x -> acc + " " + (string x)) ""
-            | _ -> string (defaultStone (uint64 x))
-        // printfn "Result: %A" (result.Trim())
-        resultHolder <- resultHolder + " " + result.Trim()
-        // printfn "Result: %A" (result.Trim())
-        let stonesCountForIteration = result.Trim().Split(" ", StringSplitOptions.RemoveEmptyEntries).Length
-        // printfn "Thing to merge: %A" thingToMerge
-        internalCounter <- internalCounter + stonesCountForIteration
-        // printfn "Internal Counter: %A" internalCounter
-        
-    ) splitResultHolder
-    totalCounter <- internalCounter
+        memo.Add(num, result)
+        result
+
+let mutable dict = Collections.Generic.Dictionary<uint64, uint64>()
+
+printfn "Dict length: %d" dict.Count
+Array.iter (fun x -> 
+    match x with
+    | x when dict.ContainsKey(x) -> 
+        dict.[x] <- dict.[x] + 1UL
+    | _ -> dict.[x] <- 1UL) counts
+
+for _ in 1..75 do
+    let new_dict = Collections.Generic.Dictionary<uint64, uint64>()
+    
+    for k in dict.Keys do
+        for n in blink k do
+            new_dict[n] <-
+                if new_dict.ContainsKey n then
+                    new_dict[n] + dict[k]
+                else
+                    dict[k]
+    dict <- new_dict
+
+let new_sum = dict.Values |> Seq.sum
+printfn "Part 2: %d" new_sum

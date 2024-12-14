@@ -22,7 +22,7 @@ let isEvenLength x =
     (string x).Length % 2 = 0
 
 let mutable resultHolder = input
-for i = 1 to 75 do
+for i = 1 to 25 do
     let splitResultHolder = resultHolder.Split(" ", StringSplitOptions.RemoveEmptyEntries)
     resultHolder <- ""
     // printfn "%A" splitResultHolder
