@@ -1,7 +1,7 @@
 open System.IO
 open System
 
-let input = File.ReadAllText("Day11/Input.txt")
+let input = File.ReadAllText("Day11/TestInput.txt")
 
 let split n =
     let num = n.ToString()
@@ -35,16 +35,21 @@ Array.iter (fun x ->
         dict.[x] <- dict.[x] + 1UL
     | _ -> dict.[x] <- 1UL) counts
 
-for _ in 1..75 do
+for _ in 1..6 do
     let new_dict = Collections.Generic.Dictionary<uint64, uint64>()
     
-    for k in dict.Keys do
-        for n in blink k do
-            new_dict[n] <-
-                if new_dict.ContainsKey n then
-                    new_dict[n] + dict[k]
+    dict.Keys |> Seq.iter (fun parentStone -> 
+        (blink parentStone) |> Array.iter (fun childStone -> 
+            new_dict.[childStone] <- 
+                printfn "ParentStone: %A ChildStone: %A" parentStone childStone
+                if new_dict.ContainsKey(childStone) then
+                    printfn "ChildStoneDictValue: %A ParentStoneDictValue: %A" new_dict.[childStone] dict.[parentStone]
+                    printfn "%A" (new_dict.[childStone] + dict.[parentStone])
+                    new_dict.[childStone] + dict.[parentStone]
                 else
-                    dict[k]
+                    printfn "Adding ParentStoneDictValue: %A from dict key %A" dict.[parentStone] parentStone
+                    dict.[parentStone]))
+            
     dict <- new_dict
 
 let new_sum = dict.Values |> Seq.sum
